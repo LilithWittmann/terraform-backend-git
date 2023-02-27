@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	sshagent "github.com/xanzy/ssh-agent"
 
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
@@ -20,9 +19,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
-	sshGit "github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/go-git/go-git/v5/storage/memory"
-	"golang.org/x/crypto/ssh"
 
 	"github.com/plumber-cd/terraform-backend-git/backend"
 )
@@ -70,7 +67,7 @@ func auth(params *RequestMetadataParams) (transport.AuthMethod, error) {
 
 	// We remove ssh protocol for now as the implementation is incompatible with go-git 5.5.1
 	
-	return nil
+	return nil, nil
 }
 
 // ref convert short branch name string to a full ReferenceName
