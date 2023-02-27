@@ -1,4 +1,4 @@
-module github.com/plumber-cd/terraform-backend-git
+module github.com/LilithWittmann/terraform-backend-git
 
 go 1.19
 
