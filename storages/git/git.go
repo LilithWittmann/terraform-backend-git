@@ -53,48 +53,7 @@ func authBasicHTTP() (*http.BasicAuth, error) {
 	}, nil
 }
 
-// authSSHAgent discovers environment for SSH_AUTH_SOCK (or other platform dependent logic)
-// and builds NewSSHAgentAuth.
-//
-// If returned null - no agent was set up
-func authSSHAgent(params *RequestMetadataParams) (*sshGit.PublicKeysCallback, error) {
-	if !sshagent.Available() {
-		return nil, nil
-	}
 
-	e, err := transport.NewEndpoint(params.Repository)
-	if err != nil {
-		return nil, err
-	}
-
-	return sshGit.NewSSHAgentAuth(e.User)
-}
-
-// authSSH discovers environment for SSH credentials
-func authSSH() (*sshGit.PublicKeys, error) {
-	pemFile, okPem := os.LookupEnv("SSH_PRIVATE_KEY")
-	if !okPem {
-		// Ok then, try to discover SSH keys in the user home
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return nil, err
-		}
-
-		pemFile = home + "/.ssh/id_rsa"
-	}
-
-	pem, err := ioutil.ReadFile(pemFile)
-	if err != nil {
-		return nil, err
-	}
-
-	signer, err := ssh.ParsePrivateKey(pem)
-	if err != nil {
-		return nil, err
-	}
-
-	return &sshGit.PublicKeys{User: "git", Signer: signer}, nil
-}
 
 // auth discovers Git authentification in the environment
 func auth(params *RequestMetadataParams) (transport.AuthMethod, error) {
@@ -109,40 +68,9 @@ func auth(params *RequestMetadataParams) (transport.AuthMethod, error) {
 		return auth, nil
 	}
 
-	// Otherwise we assume protocol was SSH
-
-	// Most likely strict known hosts checking not needed, but not making any assumptions
-	strictHostKeyChecking := true
-	hostKeyCallbackHelper := sshGit.HostKeyCallbackHelper{
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-	if val, ok := os.LookupEnv("StrictHostKeyChecking"); ok && val == "no" {
-		strictHostKeyChecking = false
-	}
-
-	// First, try ssh agent
-	agent, err := authSSHAgent(params)
-	if err != nil {
-		return nil, err
-	}
-	if agent != nil {
-		if !strictHostKeyChecking {
-			agent.HostKeyCallbackHelper = hostKeyCallbackHelper
-		}
-		return agent, nil
-	}
-
-	// Otherwise, try to find some ssh keys
-	key, err := authSSH()
-	if err != nil {
-		return nil, err
-	}
-
-	if !strictHostKeyChecking {
-		key.HostKeyCallbackHelper = hostKeyCallbackHelper
-	}
-
-	return key, nil
+	// We remove ssh protocol for now as the implementation is incompatible with go-git 5.5.1
+	
+	return nil
 }
 
 // ref convert short branch name string to a full ReferenceName
